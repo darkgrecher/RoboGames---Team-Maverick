@@ -1,56 +1,69 @@
-from controller import Robot, Camera, Motor
+from controller import Robot
 
-# Time step
+# Constants
 TIME_STEP = 64
+MAX_SPEED = 6.28
+THRESHOLD = 80  # Proximity sensor threshold for detecting a wall
+RECOVERY_THRESHOLD = 50  # Threshold for detecting a wall loss
 
-# Initialize robot and devices
+# Initialize the robot
 robot = Robot()
-camera = robot.getDevice('camera')
-camera.enable(TIME_STEP)
+
+# Enable proximity sensors
+prox_sensors = []
+for i in range(8):
+    sensor = robot.getDevice(f'ps{i}')
+    sensor.enable(TIME_STEP)
+    prox_sensors.append(sensor)
+
+# Enable wheels
 left_motor = robot.getDevice('left wheel motor')
 right_motor = robot.getDevice('right wheel motor')
-
-left_motor.setPosition(float('inf'))
+left_motor.setPosition(float('inf'))  # Set velocity control mode
 right_motor.setPosition(float('inf'))
+left_motor.setVelocity(0.0)
+right_motor.setVelocity(0.0)
 
-# Set initial velocity
-left_motor.setVelocity(0)
-right_motor.setVelocity(0)
+# Wall-following logic
+def follow_wall():
+    lost_wall = False  # Track if the wall has been temporarily lost
 
-# Color sequence
-target_colors = ['red', 'yellow', 'pink', 'brown', 'green']
-visited_colors = []
+    while robot.step(TIME_STEP) != -1:
+        # Read proximity sensor values
+        sensor_values = [sensor.getValue() for sensor in prox_sensors]
 
-# Function to identify color from camera image
-def detect_color(camera):
-    image = camera.getImageArray()
-    # Simplified detection logic (adjust thresholds as needed)
-    red = sum([image[0][x][0] for x in range(len(image[0]))]) / len(image[0])
-    green = sum([image[0][x][1] for x in range(len(image[0]))]) / len(image[0])
-    blue = sum([image[0][x][2] for x in range(len(image[0]))]) / len(image[0])
-    
-    if red > green and red > blue:
-        return 'red'
-    elif green > red and green > blue:
-        return 'green'
-    elif blue > red and blue > green:
-        return 'pink'  # Assuming high blue indicates pink
-    # Add other color detections here
-    return None
+        # Front, left, and right sensor values
+        front_left = sensor_values[7]
+        front_right = sensor_values[0]
+        side_left = sensor_values[5]
+        side_right = sensor_values[2]
 
-# Main loop
-while robot.step(TIME_STEP) != -1:
-    current_color = detect_color(camera)
-    if current_color and current_color not in visited_colors:
-        print(f"Detected {current_color}")
-        if current_color == target_colors[len(visited_colors)]:
-            visited_colors.append(current_color)
-            print(f"Visited: {visited_colors}")
-    
-    if len(visited_colors) == len(target_colors):
-        print("Task Complete!")
-        break
-    
-    # Basic movement logic (adjust as needed for maze navigation)
-    left_motor.setVelocity(2.0)
-    right_motor.setVelocity(2.0)
+        if front_left > THRESHOLD or front_right > THRESHOLD:
+            # Wall in front - turn right
+            left_motor.setVelocity(MAX_SPEED * 0.5)
+            right_motor.setVelocity(-MAX_SPEED * 0.5)
+            lost_wall = False
+        elif side_left > THRESHOLD:
+            # Wall on the left - move forward while keeping close to the wall
+            left_motor.setVelocity(MAX_SPEED * 0.6)
+            right_motor.setVelocity(MAX_SPEED * 0.4)
+            lost_wall = False
+        elif side_right > THRESHOLD:
+            # Wall on the right - move forward while keeping close to the wall
+            left_motor.setVelocity(MAX_SPEED * 0.4)
+            right_motor.setVelocity(MAX_SPEED * 0.6)
+            lost_wall = False
+        else:
+            # No wall detected - recover by turning in the direction of the last wall
+            if lost_wall:
+                # If the wall is lost, keep turning slowly to find it
+                left_motor.setVelocity(MAX_SPEED * 0.3)
+                right_motor.setVelocity(-MAX_SPEED * 0.3)
+            else:
+                # If the wall was just lost, turn slightly in the last direction
+                lost_wall = True
+                left_motor.setVelocity(MAX_SPEED * 0.5)
+                right_motor.setVelocity(-MAX_SPEED * 0.5)
+
+# Run the wall-following function
+follow_wall()
