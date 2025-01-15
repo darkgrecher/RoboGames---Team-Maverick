@@ -3,18 +3,20 @@ from controller import Robot
 # Constants
 TIME_STEP = 64
 MAX_SPEED = 6.28
-THRESHOLD = 80  # Proximity sensor threshold for detecting a wall
+THRESHOLD = 80  # Laser sensor threshold for detecting a wall
 RECOVERY_THRESHOLD = 50  # Threshold for detecting a wall loss
+LASER_SENSOR_RANGE = 100  # Increased range for laser sensors
 
 # Initialize the robot
 robot = Robot()
 
-# Enable proximity sensors
-prox_sensors = []
+# Enable laser sensors
+laser_sensors = []
 for i in range(8):
-    sensor = robot.getDevice(f'ps{i}')
+    sensor = robot.getDevice(f'ls{i}')
     sensor.enable(TIME_STEP)
-    prox_sensors.append(sensor)
+    sensor.setRange(LASER_SENSOR_RANGE)  # Set the increased range
+    laser_sensors.append(sensor)
 
 # Enable wheels
 left_motor = robot.getDevice('left wheel motor')
@@ -29,8 +31,8 @@ def follow_wall():
     lost_wall = False  # Track if the wall has been temporarily lost
 
     while robot.step(TIME_STEP) != -1:
-        # Read proximity sensor values
-        sensor_values = [sensor.getValue() for sensor in prox_sensors]
+        # Read laser sensor values
+        sensor_values = [sensor.getValue() for sensor in laser_sensors]
 
         # Front, left, and right sensor values
         front_left = sensor_values[7]
