@@ -1,56 +1,23 @@
-from controller import Robot, Camera, Motor
+from controller import Robot
 
-# Time step
-TIME_STEP = 64
-
-# Initialize robot and devices
+# Initialize the robot and timestep
 robot = Robot()
-camera = robot.getDevice('camera')
-camera.enable(TIME_STEP)
-left_motor = robot.getDevice('left wheel motor')
-right_motor = robot.getDevice('right wheel motor')
+timestep = int(robot.getBasicTimeStep())
 
-left_motor.setPosition(float('inf'))
-right_motor.setPosition(float('inf'))
+# Initialize the light sensor
+light_sensor = robot.getDevice('light sensor')  # Use the name of the light sensor
+light_sensor.enable(timestep)
 
-# Set initial velocity
-left_motor.setVelocity(0)
-right_motor.setVelocity(0)
+while robot.step(timestep) != -1:
+    # Read the value from the light sensor
+    light_value = light_sensor.getValue()
 
-# Color sequence
-target_colors = ['red', 'yellow', 'pink', 'brown', 'green']
-visited_colors = []
+    # Debugging output
+    print(f"Light Sensor Value: {light_value}")
 
-# Function to identify color from camera image
-def detect_color(camera):
-    image = camera.getImageArray()
-    # Simplified detection logic (adjust thresholds as needed)
-    red = sum([image[0][x][0] for x in range(len(image[0]))]) / len(image[0])
-    green = sum([image[0][x][1] for x in range(len(image[0]))]) / len(image[0])
-    blue = sum([image[0][x][2] for x in range(len(image[0]))]) / len(image[0])
-    
-    if red > green and red > blue:
-        return 'red'
-    elif green > red and green > blue:
-        return 'green'
-    elif blue > red and blue > green:
-        return 'pink'  # Assuming high blue indicates pink
-    # Add other color detections here
-    return None
+    # Example logic for detecting red light
+    if light_value > 0:
+        print("Light detected!")
+    else:
+        print("No light detected.")
 
-# Main loop
-while robot.step(TIME_STEP) != -1:
-    current_color = detect_color(camera)
-    if current_color and current_color not in visited_colors:
-        print(f"Detected {current_color}")
-        if current_color == target_colors[len(visited_colors)]:
-            visited_colors.append(current_color)
-            print(f"Visited: {visited_colors}")
-    
-    if len(visited_colors) == len(target_colors):
-        print("Task Complete!")
-        break
-    
-    # Basic movement logic (adjust as needed for maze navigation)
-    left_motor.setVelocity(2.0)
-    right_motor.setVelocity(2.0)
