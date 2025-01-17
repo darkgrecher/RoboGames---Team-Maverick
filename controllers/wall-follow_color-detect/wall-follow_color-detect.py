@@ -90,13 +90,6 @@ def run_robot(robot):
         # Debugging output
         print(f"Current Position: ({current_x:.3f}, {current_y:.3f})")
 
-        # Check if the robot is within the specified region
-        if X_MIN < current_x < X_MAX and Y_MIN < current_y < Y_MAX:
-            left_motor.setVelocity(0)
-            right_motor.setVelocity(0)
-            print("Robot paused in the specified region.")
-            continue
-
         # Get the image from the camera
         image = camera.getImage()
         width, height = camera.getWidth(), camera.getHeight()
