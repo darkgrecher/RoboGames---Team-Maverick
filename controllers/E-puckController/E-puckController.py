@@ -126,15 +126,12 @@ def run_robot(robot):
         left_wall = prox_sensors[1].getValue() > 80
         front_wall = prox_sensors[7].getValue() > 80
         left_corner = prox_sensors[0].getValue() > 80
-        right_wall = prox_sensors[5].getValue() > 80
 
         left_speed = max_speed
         right_speed = max_speed
 
         if front_wall:
-            
             left_speed = max_speed
-
             right_speed = -max_speed
         else:
             if left_wall:
@@ -145,10 +142,6 @@ def run_robot(robot):
                 right_speed = max_speed
 
             if left_corner:
-                left_speed = max_speed
-                right_speed = max_speed / 4
-            
-            if right_wall:
                 left_speed = max_speed
                 right_speed = max_speed / 4
 
