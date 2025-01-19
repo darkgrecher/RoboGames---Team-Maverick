@@ -31,8 +31,8 @@ The robot stops after completing the sequence.
 ### Clone the Repository
 To get started, clone the repository:
 ```bash
-git clone https://github.com/your-repo-link.git
-cd maze-wall-colors-following-robot
+git clone https://github.com/darkgrecher/RoboGames---Team-Maverick.git
+cd RoboGames---Team-Maverick
 ```
 
 ![Maze with interface](Images/Image-maze.png)
