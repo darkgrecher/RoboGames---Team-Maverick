@@ -35,5 +35,5 @@ git clone https://github.com/your-repo-link.git
 cd maze-wall-colors-following-robot
 ```
 
-![Maze with interface](Imasges/Image-maze.png)
-![Maze with interface2](Imasges/Image-maze2.png)
+![Maze with interface](Images/Image-maze.png)
+![Maze with interface2](Images/Image-maze2.png)
